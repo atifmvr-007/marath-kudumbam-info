@@ -135,17 +135,22 @@ function renderNotices(notices) {
   $('cork').innerHTML = notices.length ? notices.map((n, i) => `<div class="note" style="--bg:${NOTE_COLOURS[i % NOTE_COLOURS.length]};--r:${[-3, 2, -1.5, 3][i % 4]}deg"><div class="pin"></div><h4>${esc(n.title)}</h4><p>${esc(n.body)}</p><small>${esc(n.date_label)}</small></div>`).join('') : '<p class="empty">No notices yet.</p>';
 }
 
+const revealObserver = new IntersectionObserver((entries) => entries.forEach((entry) => {
+  if (!entry.isIntersecting) return;
+  const el = entry.target;
+  el.classList.add('in');
+  if (el.id === 'tree') el.classList.add('grown');
+  if (el.id === 'album') $('albumGrid').classList.add('dealt');
+  revealObserver.unobserve(el);
+}), { threshold: .15 });
 function observeReveals() {
-  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
-    if (!entry.isIntersecting) return;
-    const el = entry.target;
-    el.classList.add('in');
-    if (el.id === 'tree') el.classList.add('grown');
-    if (el.id === 'album') $('albumGrid').classList.add('dealt');
-    observer.unobserve(el);
-  }), { threshold: .15 });
-  document.querySelectorAll('section,.reveal').forEach((el) => observer.observe(el));
+  document.querySelectorAll('section:not(.in),.reveal:not(.in)').forEach((el) => {
+    if (el.dataset.watched) return;
+    el.dataset.watched = '1';
+    revealObserver.observe(el);
+  });
 }
+observeReveals();
 
 function openShare(kind) {
   $('shareKind').value = kind;

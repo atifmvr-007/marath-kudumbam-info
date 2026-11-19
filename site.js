@@ -1,4 +1,8 @@
 /* Shared browser code. These two Supabase values are public by design. */
+/* Refuse to run inside another website's frame (protects against click tricks). */
+if (window.top !== window.self) {
+  try { window.top.location.replace(window.location.href); } catch { document.documentElement.hidden = true; }
+}
 window.MK = (() => {
   const URL_BASE = 'https://cppdwandvejbittfmwxe.supabase.co';
   const KEY = 'sb_publishable_kQC3L3pxNqwHMCmHd7Mp6w_iCOb4RjA';
@@ -39,9 +43,13 @@ window.MK = (() => {
           ...(jwt ? { Authorization: `Bearer ${jwt}` } : {}),
         },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout ? AbortSignal.timeout(raw ? 120000 : 30000) : undefined,
       });
-    } catch {
-      throw Object.assign(new Error('Could not connect. Check your internet and try again.'), { status: 0 });
+    } catch (error) {
+      const message = error?.name === 'TimeoutError'
+        ? 'The server took too long to answer. Please try again.'
+        : 'Could not connect. Check your internet and try again.';
+      throw Object.assign(new Error(message), { status: 0 });
     }
     if (raw && response.ok) return response;
     const data = await response.json().catch(() => ({}));

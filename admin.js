@@ -100,11 +100,13 @@ const isOwner = () => state.profile?.role === 'owner';
 function renderShell() {
   const tabs = isOwner() ? [...TABS, ...OWNER_TABS] : TABS;
   app.innerHTML = `<header class="top"><h1>Marath Kudumbam admin</h1><div class="row"><a href="/">View site</a><button class="btn" data-act="logout">Log out</button></div></header>
-    <div class="layout"><nav class="tabs" aria-label="Admin sections">${tabs.map(([id, label]) => `<button data-tab="${id}" class="${state.tab === id ? 'on' : ''}"><span>${label}</span>${id === 'approvals' ? '<span class="badge" id="pendingBadge" hidden></span>' : ''}</button>`).join('')}</nav><main id="view"><p>Loading…</p></main></div>`;
+    <div class="layout"><nav class="tabs" aria-label="Admin sections">${tabs.map(([id, label]) => `<button data-tab="${id}" class="${state.tab === id ? 'on' : ''}"><span>${label}</span>${id === 'approvals' ? '<span class="badge" id="pendingBadge" hidden></span>' : ''}</button>`).join('')}</nav><main id="view">${SKELETON}</main></div>`;
   loadTab();
 }
+const SKELETON = '<div aria-hidden="true"><span class="sk" style="width:220px;height:42px;margin-bottom:18px"></span><span class="sk" style="height:76px;margin-bottom:12px"></span><span class="sk" style="height:76px;margin-bottom:12px"></span><span class="sk" style="height:76px"></span></div><p class="muted">Loading…</p>';
 async function loadTab() {
   const view = document.getElementById('view');
+  view.innerHTML = SKELETON;
   try { view.innerHTML = await VIEWS[state.tab](); afterView(); }
   catch (error) { view.innerHTML = `<p class="msg bad">${esc(friendly(error.message))}</p>`; }
   refreshBadge();
